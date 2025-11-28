@@ -1,3 +1,89 @@
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial;
+  line-height: 1.4;
+  color: #111;
+  background: #f9f9f9;
+  padding: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* root container */
 #root {
-  color: red;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* headings */
+h1 {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+
+.episode-count {
+  color: #333;
+  margin: 0 0 16px 0;
+}
+
+/* grid for episodes */
+.episode-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+/* episode card */
+.episode {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  outline: none;
+}
+
+.episode:focus {
+  box-shadow: 0 0 0 4px rgba(21, 156, 228, 0.15);
+  border-color: #159ce4;
+}
+
+.episode-header h2 {
+  font-size: 1rem;
+  margin: 0 0 6px 0;
+}
+
+.episode-meta {
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 8px 0;
+}
+
+/* image */
+.episode-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin: 6px 0;
+  border-radius: 4px;
+}
+
+/* summary styling */
+.episode-summary p {
+  margin: 8px 0 0 0;
+  color: #222;
+}
+
+/* small screens: slightly larger padding */
+@media (max-width: 420px) {
+  #root {
+    padding: 8px;
+  }
+
+  .episode {
+    padding: 10px;
+  }
 }
