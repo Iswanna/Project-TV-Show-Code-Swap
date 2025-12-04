@@ -18,10 +18,10 @@
   padding: 16px;
 }
 
-/* top header container: heading + search */
+/* top header container: heading + search + select */
 .site-header {
   display: flex;
-  justify-content: space-between; /* heading left, search right */
+  justify-content: space-between; /* heading left, search/select right */
   align-items: center;
   flex-wrap: wrap;
   margin-bottom: 16px;
@@ -45,6 +45,23 @@
 /* search input styling */
 #search-input {
   width: 200px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+/* select/dropdown container */
+.select-container {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px; /* space between label and select */
+  margin-left: 12px; /* space between search and dropdown */
+}
+
+/* dropdown styling */
+#episode-select {
   padding: 6px 10px;
   font-size: 0.9rem;
   border-radius: 5px;
@@ -115,18 +132,24 @@
     padding: 10px;
   }
 
-  /* stack heading and search on small screens */
+  /* stack header items on small screens */
   .site-header {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .search-container {
+  .search-container,
+  .select-container {
     justify-content: flex-start;
     margin-top: 8px;
   }
 
-  #search-input {
+  #search-input,
+  #episode-select {
     width: 100%;
+  }
+
+  .select-container {
+    margin-left: 0; /* remove horizontal spacing on stacked layout */
   }
 }
