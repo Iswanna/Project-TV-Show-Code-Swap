@@ -1,102 +1,108 @@
+// Initial setup runs after the page loads
 function setup() {
-  const allEpisodes = getAllEpisodes(); // provided by episodes.js
-  makePageForEpisodes(allEpisodes);
+  const allEpisodes = getAllEpisodes(); // supplied by episodes.js, provides the full episode list
+  makePageForEpisodes(allEpisodes); // builds the layout and fills it with episode cards
 }
 
+// Formats season and episode into S07E02 format
 function formatEpisodeCode(season, number) {
-  // Format like S01E01
-  const s = String(season).padStart(2, "0");
-  const e = String(number).padStart(2, "0");
+  const s = String(season).padStart(2, "0"); // ensures season has two digits
+  const e = String(number).padStart(2, "0"); // ensures episode number has two digits
   return `S${s}E${e}`;
 }
 
+// Builds a single episode card element
 function makeEpisodeCard(episode) {
-  // Destructure the values we need
   const { name, season, number, image, summary, runtime, airdate } = episode;
 
-  // Create article (semantic)
   const article = document.createElement("article");
-  article.className = "episode";
-  article.setAttribute("tabindex", "0"); // make focusable for keyboard users
-  article.setAttribute("aria-labelledby", `title-${season}-${number}`);
+  article.className = "episode"; // card styling
+  article.setAttribute("tabindex", "0"); // makes card keyboard accessible
+  article.setAttribute("aria-labelledby", `title-${season}-${number}`); // links to title for screen readers
 
-  // Header with title and meta
   const header = document.createElement("header");
   header.className = "episode-header";
 
   const h2 = document.createElement("h2");
-  h2.id = `title-${season}-${number}`;
-  h2.textContent = `${formatEpisodeCode(season, number)} - ${name}`;
+  h2.id = `title-${season}-${number}`; // unique id for accessibility
+  h2.textContent = `${formatEpisodeCode(season, number)} - ${name}`; // formatted title
   header.appendChild(h2);
 
   const meta = document.createElement("p");
   meta.className = "episode-meta";
   meta.textContent = `Airdate: ${airdate || "Unknown"} • Runtime: ${
     runtime ? runtime + " min" : "Unknown"
-  }`;
+  }`; // shows airdate and runtime
   header.appendChild(meta);
 
   article.appendChild(header);
 
-  // Image (if provided) with accessible alt text
+  // Adds image if available
   if (image && image.medium) {
     const img = document.createElement("img");
-    img.src = image.medium;
-    img.alt = `${name} (Season ${season} Episode ${number})`;
-    img.loading = "lazy";
+    img.src = image.medium; // medium size image
+    img.alt = `${name} (Season ${season} Episode ${number})`; // descriptive alt text
+    img.loading = "lazy"; // improves performance by delaying load
     img.className = "episode-image";
     article.appendChild(img);
   }
 
-  // Summary: the API summary contains HTML; preserve it but ensure it's safe
-
+  // Summary section
   const summarySection = document.createElement("section");
   summarySection.className = "episode-summary";
-  summarySection.innerHTML = summary || "<p>No summary available.</p>";
+  summarySection.innerHTML = summary || "<p>No summary available.</p>"; // uses provided HTML summary
   article.appendChild(summarySection);
 
   return article;
 }
 
+// Builds the full page layout including header, search, count, and episode grid
 function makePageForEpisodes(episodeList) {
   const rootElem = document.getElementById("root");
-  // clear previous content
-  rootElem.innerHTML = "";
+  rootElem.innerHTML = ""; // clears previous content
 
-  // Top heading and count (semantic)
   const main = document.createElement("main");
   main.className = "site-main";
 
+  // Header block that contains both the title and search box
+  const headerContainer = document.createElement("div");
+  headerContainer.className = "site-header";
+
   const heading = document.createElement("h1");
-  heading.textContent = "TV Show Episodes";
-  main.appendChild(heading);
+  heading.textContent = "TV Show Episodes"; // main page heading
+  headerContainer.appendChild(heading);
 
-  // Episode count
-  const count = document.createElement("p");
-  count.className = "episode-count";
-  count.textContent = `Showing ${episodeList.length} episode(s)`;
-  main.appendChild(count);
+  // Search input and its label
+  const searchContainer = document.createElement("div");
+  searchContainer.className = "search-container";
 
-  // --- ADD SEARCH BOX ---
   const searchLabel = document.createElement("label");
-  searchLabel.textContent = "Search episodes: ";
-  searchLabel.setAttribute("for", "search-input");
+  searchLabel.textContent = "Search: "; // visible label text
+  searchLabel.setAttribute("for", "search-input"); // connects label to input
 
   const searchInput = document.createElement("input");
-  searchInput.id = "search-input";
-  searchInput.type = "text";
-  searchInput.placeholder = "Type to search by name or summary...";
+  searchInput.id = "search-input"; // referenced by label
+  searchInput.type = "text"; // text search field
+  searchInput.placeholder = "Type to search by name or summary"; // hint text for user
 
   searchLabel.appendChild(searchInput);
-  main.appendChild(searchLabel);
-  // ----------------------
+  searchContainer.appendChild(searchLabel);
 
-  // Container for episodes
+  headerContainer.appendChild(searchContainer);
+  main.appendChild(headerContainer);
+
+  // Displays the number of episodes shown
+  const count = document.createElement("p");
+  count.className = "episode-count";
+  count.textContent = `Showing ${episodeList.length} episode(s)`; // initial count
+  main.appendChild(count);
+
+  // Container for all episode cards
   const list = document.createElement("section");
-  list.className = "episode-grid";
+  list.className = "episode-grid"; // CSS grid for layout
   list.setAttribute("aria-label", "Episodes list");
 
-  // Create and append each episode card
+  // Build each episode card and add to the grid
   episodeList.forEach((ep) => {
     const card = makeEpisodeCard(ep);
     list.appendChild(card);
@@ -105,150 +111,28 @@ function makePageForEpisodes(episodeList) {
   main.appendChild(list);
   rootElem.appendChild(main);
 
-  function setup() {
-  const allEpisodes = getAllEpisodes(); // provided by episodes.js
-  makePageForEpisodes(allEpisodes);
-}
+  // Live search filter logic
+  searchInput.addEventListener("input", () => {
+    const term = searchInput.value.toLowerCase(); // lowercased search term
+    let matched = 0; // counts visible episodes
 
-function formatEpisodeCode(season, number) {
-  // Format like S01E01
-  const s = String(season).padStart(2, "0");
-  const e = String(number).padStart(2, "0");
-  return `S${s}E${e}`;
-}
+    Array.from(list.children).forEach((card, i) => {
+      const ep = episodeList[i];
+      const isMatch =
+        ep.name.toLowerCase().includes(term) ||
+        (ep.summary && ep.summary.toLowerCase().includes(term));
 
-function makeEpisodeCard(episode) {
-  // Destructure the values we need
-  const { name, season, number, image, summary, runtime, airdate } = episode;
+      if (isMatch) {
+        card.style.display = ""; // keep visible
+        matched++;
+      } else {
+        card.style.display = "none"; // hide non matches
+      }
+    });
 
-  // Create article (semantic)
-  const article = document.createElement("article");
-  article.className = "episode";
-  article.setAttribute("tabindex", "0"); // make focusable for keyboard users
-  article.setAttribute("aria-labelledby", `title-${season}-${number}`);
-
-  // Header with title and meta
-  const header = document.createElement("header");
-  header.className = "episode-header";
-
-  const h2 = document.createElement("h2");
-  h2.id = `title-${season}-${number}`;
-  h2.textContent = `${formatEpisodeCode(season, number)} - ${name}`;
-  header.appendChild(h2);
-
-  const meta = document.createElement("p");
-  meta.className = "episode-meta";
-  meta.textContent = `Airdate: ${airdate || "Unknown"} • Runtime: ${
-    runtime ? runtime + " min" : "Unknown"
-  }`;
-  header.appendChild(meta);
-
-  article.appendChild(header);
-
-  // Image (if provided) with accessible alt text
-  if (image && image.medium) {
-    const img = document.createElement("img");
-    img.src = image.medium;
-    img.alt = `${name} (Season ${season} Episode ${number})`;
-    img.loading = "lazy";
-    img.className = "episode-image";
-    article.appendChild(img);
-  }
-
-  // Summary: the API summary contains HTML; preserve it but ensure it's safe
-
-  const summarySection = document.createElement("section");
-  summarySection.className = "episode-summary";
-  summarySection.innerHTML = summary || "<p>No summary available.</p>";
-  article.appendChild(summarySection);
-
-  return article;
-}
-
-function makePageForEpisodes(episodeList) {
-  const rootElem = document.getElementById("root");
-  // clear previous content
-  rootElem.innerHTML = "";
-
-  // Top heading and count (semantic)
-  const main = document.createElement("main");
-  main.className = "site-main";
-
-  const heading = document.createElement("h1");
-  heading.textContent = "TV Show Episodes";
-  main.appendChild(heading);
-
-  // Episode count
-  const count = document.createElement("p");
-  count.className = "episode-count";
-  count.textContent = `Showing ${episodeList.length} episode(s)`;
-  main.appendChild(count);
-
-  // --- ADD SEARCH BOX ---
-  const searchLabel = document.createElement("label");
-  searchLabel.textContent = "Search episodes: ";
-  searchLabel.setAttribute("for", "search-input");
-
-  const searchInput = document.createElement("input");
-  searchInput.id = "search-input";
-  searchInput.type = "text";
-  searchInput.placeholder = "Type to search by name or summary...";
-
-  searchLabel.appendChild(searchInput);
-  main.appendChild(searchLabel);
-  // ----------------------
-
-  // Container for episodes
-  const list = document.createElement("section");
-  list.className = "episode-grid";
-  list.setAttribute("aria-label", "Episodes list");
-
-  // Create and append each episode card
-  episodeList.forEach((ep) => {
-    const card = makeEpisodeCard(ep);
-    list.appendChild(card);
+    count.textContent = `Showing ${matched} episode(s)`; // update the count live
   });
-
-  main.appendChild(list);
-  rootElem.appendChild(main);
 }
 
-// --- HANDLE LIVE SEARCH ---
-searchInput.addEventListener("input", () => {
-  // Get the current value from the search input and convert it to lowercase for case-insensitive search
-  const term = searchInput.value.toLowerCase();
-
-  // Initialize a counter to track how many episodes match the search term
-  let matched = 0;
-
-  // Convert the HTMLCollection of episode cards to an array so we can use forEach
-  Array.from(list.children).forEach((card, i) => {
-    // Get the corresponding episode object from the episodeList array
-    const ep = episodeList[i];
-
-    // Check if the episode name or summary contains the search term
-    // summary may be undefined, so we check it exists first
-    const isMatch =
-      ep.name.toLowerCase().includes(term) ||
-      (ep.summary && ep.summary.toLowerCase().includes(term));
-
-    // If the episode matches, show it and increase the matched counter
-    if (isMatch) {
-      card.style.display = "";
-      matched++;
-    } else {
-      // If it doesn't match, hide the episode card
-      card.style.display = "none";
-    }
-  });
-
-  // Update the episode count paragraph to show how many episodes are currently displayed
-  count.textContent = `Showing ${matched} episode(s)`;
-});
-
-window.onload = setup;
-
-}
-
-
+// Runs setup when window loads
 window.onload = setup;
