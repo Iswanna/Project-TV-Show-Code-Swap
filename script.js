@@ -1,5 +1,3 @@
-// script.js (Level 300 - improved)
-
 // --- Global data (filled AFTER fetch) ---
 let allEpisodes = [];
 
@@ -16,6 +14,13 @@ title.id = "pageTitle";
 const controls = document.createElement("div");
 controls.className = "controls";
 
+// --- Show selector dropdown (Requirement 1) ---
+const showSelect = document.createElement("select");
+showSelect.id = "showSelect";
+showSelect.setAttribute("aria-label", "Select show");
+showSelect.disabled = true; // disabled until shows are loaded
+
+// Search bar
 const searchBar = document.createElement("input");
 searchBar.type = "search";
 searchBar.placeholder = "Search episodes...";
@@ -23,15 +28,19 @@ searchBar.id = "searchBar";
 searchBar.setAttribute("aria-label", "Search episodes");
 searchBar.disabled = true; // disabled until data loaded
 
+// Episode dropdown
 const episodeSelect = document.createElement("select");
 episodeSelect.id = "episodeSelect";
 episodeSelect.setAttribute("aria-label", "Select episode");
 episodeSelect.disabled = true; // disabled until data loaded
 
+// Episode count label
 const countLabel = document.createElement("span");
 countLabel.className = "episode-count";
 countLabel.setAttribute("aria-live", "polite"); // announce changes
 
+// Append controls: showSelect first
+controls.appendChild(showSelect);
 controls.appendChild(searchBar);
 controls.appendChild(episodeSelect);
 controls.appendChild(countLabel);
@@ -56,7 +65,6 @@ function formatCode(season, number) {
 // Utility: safe text extractor (summary may be null and may contain HTML)
 function extractSummaryText(summaryHtml) {
   if (!summaryHtml) return "";
-  // Remove HTML tags for text searching. Create a temporary element.
   const tmp = document.createElement("div");
   tmp.innerHTML = summaryHtml;
   return tmp.textContent || tmp.innerText || "";
@@ -67,6 +75,7 @@ function showLoadingUI() {
   // disable controls while loading
   searchBar.disabled = true;
   episodeSelect.disabled = true;
+  showSelect.disabled = true;
 
   episodeContainer.innerHTML = "";
   const loading = document.createElement("div");
@@ -84,9 +93,7 @@ function showErrorUI(
   const err = document.createElement("div");
   err.className = "error";
   err.setAttribute("role", "alert");
-  err.innerHTML = `
-    <p>${message}</p>
-  `;
+  err.innerHTML = `<p>${message}</p>`;
 
   const retryBtn = document.createElement("button");
   retryBtn.type = "button";
@@ -101,13 +108,13 @@ function showErrorUI(
   // keep controls disabled
   searchBar.disabled = true;
   episodeSelect.disabled = true;
+  showSelect.disabled = true;
 }
 
 // --- Fetch episodes once and initialize UI ---
 async function fetchEpisodesOnce() {
   const url = "https://api.tvmaze.com/shows/82/episodes";
   const resp = await APICache.fetch(url);
-  // APICache.fetch already returns parsed JSON, so just return it
   return resp;
 }
 
@@ -126,14 +133,15 @@ async function fetchAndInit() {
 
 // --- Initialize controls and rendering once we have data ---
 function initUIWithData(episodes) {
-  // populate dropdown
+  // populate episode dropdown
   makeEpisodeDropdown(episodes);
 
   // enable controls
   searchBar.disabled = false;
   episodeSelect.disabled = false;
+  showSelect.disabled = false;
 
-  // render all
+  // render all episodes
   renderEpisodes(episodes);
   updateCount(episodes.length);
 
@@ -163,7 +171,6 @@ function applyFilters() {
       (ep) => String(ep.id) === String(selectedVal),
     );
     if (!found) {
-      // nothing found — show empty
       renderNoResults();
       updateCount(0);
       return;
@@ -171,7 +178,6 @@ function applyFilters() {
     results = [found];
     renderEpisodes(results);
     updateCount(1);
-    // optional: scroll into view — but here we render only that episode
     return;
   }
 
@@ -211,7 +217,6 @@ function renderEpisodes(list) {
     card.setAttribute("aria-labelledby", `title-${ep.id}`);
     card.dataset.episodeId = ep.id;
 
-    // Header
     const header = document.createElement("header");
     header.className = "episode-header";
 
@@ -231,7 +236,6 @@ function renderEpisodes(list) {
 
     card.appendChild(header);
 
-    // Image (only if available)
     if (ep.image && (ep.image.medium || ep.image.original)) {
       const img = document.createElement("img");
       img.className = "episode-image";
@@ -241,7 +245,6 @@ function renderEpisodes(list) {
       card.appendChild(img);
     }
 
-    // Summary — preserve HTML but handle missing
     const summarySection = document.createElement("section");
     summarySection.className = "episode-summary";
     summarySection.setAttribute("aria-label", "Episode summary");
