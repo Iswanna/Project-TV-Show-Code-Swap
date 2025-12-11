@@ -65,12 +65,22 @@
   margin-left: 12px; /* space between search and dropdown */
 }
 
-/* dropdown styling */
+/* episode dropdown styling */
 #episode-select {
   padding: 6px 10px;
   font-size: 0.9rem;
   border-radius: 5px;
   border: 1px solid #ccc;
+}
+
+/* new show dropdown styling */
+#showSelect {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-bottom: 8px; /* spacing from other controls */
+  min-width: 220px;
 }
 
 /* episode count */
@@ -150,7 +160,8 @@
   }
 
   #search-input,
-  #episode-select {
+  #episode-select,
+  #showSelect {
     width: 100%;
   }
 
