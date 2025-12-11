@@ -21,7 +21,7 @@ showSelect.setAttribute("aria-label", "Select show");
 showSelect.disabled = true; // disabled until shows are loaded
 
 // Search bar
-const searchBar = document.createElement("input");
+let searchBar = document.createElement("input");
 searchBar.type = "search";
 searchBar.placeholder = "Search episodes...";
 searchBar.id = "searchBar";
@@ -29,7 +29,7 @@ searchBar.setAttribute("aria-label", "Search episodes");
 searchBar.disabled = true; // disabled until data loaded
 
 // Episode dropdown
-const episodeSelect = document.createElement("select");
+let episodeSelect = document.createElement("select");
 episodeSelect.id = "episodeSelect";
 episodeSelect.setAttribute("aria-label", "Select episode");
 episodeSelect.disabled = true; // disabled until data loaded
@@ -180,6 +180,15 @@ function initUIWithData(episodes) {
   renderEpisodes(episodes);
   updateCount(episodes.length);
 
+  // Remove previous event listeners by replacing nodes
+  const newSearchBar = searchBar.cloneNode(true);
+  searchBar.parentNode.replaceChild(newSearchBar, searchBar);
+  searchBar = newSearchBar;
+
+  const newEpisodeSelect = episodeSelect.cloneNode(true);
+  episodeSelect.parentNode.replaceChild(newEpisodeSelect, episodeSelect);
+  episodeSelect = newEpisodeSelect;
+
   // Search handler (debounced)
   let timer = null;
   searchBar.addEventListener("input", () => {
@@ -191,7 +200,7 @@ function initUIWithData(episodes) {
   episodeSelect.addEventListener("change", () => applyFilters());
 }
 
-// --- Apply filters using cached allEpisodes (no new fetches) ---
+// --- Apply filters using cached allEpisodes ---
 function applyFilters() {
   if (!Array.isArray(allEpisodes)) return;
 
@@ -239,7 +248,7 @@ function renderNoResults() {
   episodeContainer.innerHTML = `<p>No episodes found.</p>`;
 }
 
-// --- Render episode cards (handles missing images & missing summary) ---
+// --- Render episode cards ---
 function renderEpisodes(list) {
   episodeContainer.innerHTML = "";
   const grid = document.createElement("div");
@@ -315,7 +324,7 @@ function updateCount(n) {
   countLabel.textContent = `Showing ${n} episode(s)`;
 }
 
-// --- Handle show selection (Requirement 3) ---
+// --- Handle show selection ---
 showSelect.addEventListener("change", async () => {
   const showId = showSelect.value;
   if (!showId) return;
@@ -325,7 +334,7 @@ showSelect.addEventListener("change", async () => {
   try {
     const episodes = await fetchEpisodesByShow(showId);
     allEpisodes = episodes;
-    initUIWithData(allEpisodes); // reuse existing UI init logic
+    initUIWithData(allEpisodes); // ensures search & episode select work for new show
   } catch (err) {
     console.error("Failed to load episodes for selected show:", err);
     showErrorUI("❌ Failed to load episodes for this show. Please try again.");
